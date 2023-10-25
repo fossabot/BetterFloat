@@ -1,4 +1,5 @@
 import { EventData, CSFloat } from './@typings/FloatTypes';
+import { Skinbaron } from './@typings/SkinbaronTypes';
 import { Skinbid } from './@typings/SkinbidTypes';
 import { Skinport } from './@typings/SkinportTypes';
 import {
@@ -13,6 +14,7 @@ import {
     cacheSkinbidUserCurrency,
     cacheSpItems,
     cacheSpPopupItem,
+    cacheSkinbaronItems,
 } from './mappinghandler';
 import { handleListed, handleSold } from './skinport/websockethandler';
 
@@ -37,6 +39,8 @@ export function activateHandler() {
             processSkinportEvent(eventData);
         } else if (location.href.includes('skinbid.com')) {
             processSkinbidEvent(eventData);
+        } else if (location.href.includes('skinbaron.de')) {
+            processSkinbaronEvent(eventData);
         }
     });
 
@@ -85,6 +89,21 @@ export function activateHandler() {
             });
         }
     });
+}
+
+function processSkinbaronEvent(eventData: EventData<unknown>) {
+    console.debug('[BetterFloat] Received data from url: ' + eventData.url + ', data:', eventData.data);
+    if (eventData.url.includes('appId=') && !eventData.url.includes('appId=730')) {
+        console.debug('[BetterFloat] Skinbaron: Ignoring non-csgo request');
+        return;
+    }
+    if (eventData.url.includes('api/v2/Browsing/FilterOffers')) {
+        // Skinbaron.FilterOffers
+        cacheSkinbaronItems((eventData.data as Skinbaron.FilterOffers).aggregatedMetaOffers);
+    } else if (eventData.url.includes('api/v2/PromoOffers')) {
+        // Skinbaron.PromoOffers
+        cacheSkinbaronItems((eventData.data as Skinbaron.PromoOffers).bestDeals.aggregatedMetaOffers);
+    }
 }
 
 function processSkinbidEvent(eventData: EventData<unknown>) {

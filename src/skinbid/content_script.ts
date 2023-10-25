@@ -573,5 +573,4 @@ let extensionSettings: Extension.Settings;
 let runtimePublicURL = chrome.runtime.getURL('../public');
 // mutation observer active?
 let isObserverActive = false;
-console.log('[BetterFloat] Skinbid content script loaded');
 init();

@@ -10,6 +10,7 @@ function openIntercept() {
     window.XMLHttpRequest.prototype.open = function () {
         (<XMLHttpRequest>this).addEventListener('load', (e) => {
             const target = <XMLHttpRequest>e.currentTarget;
+            // console.debug('[BetterFloat] Intercepted HTTP request: ' + target.responseURL);
             if (!target.responseURL.includes(location.hostname)) {
                 console.debug('[BetterFloat] Ignoring HTTP request to: ' + target.responseURL);
                 return;

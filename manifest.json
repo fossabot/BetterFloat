@@ -5,7 +5,7 @@
     "version_name": "1.11.0",
     "description": "Enhance your experience on CSFloat.com, Skinport.com & Skinbid.com!",
     "manifest_version": 3,
-    "host_permissions": ["*://prices.csgotrader.app/*", "*://*.csfloat.com/*", "*://*.skinport.com/*", "*://*.skinbid.com/*"],
+    "host_permissions": ["*://prices.csgotrader.app/*", "*://*.csfloat.com/*", "*://*.skinport.com/*", "*://*.skinbid.com/*", "*://*.skinbaron.de/*"],
     "background": {
         "service_worker": "js/background.js"
     },
@@ -17,20 +17,26 @@
             "run_at": "document_end"
         },
         {
-            "matches": ["*://*.csfloat.com/*", "*://*.skinport.com/*", "*://*.skinbid.com/*"],
+            "matches": ["*://*.csfloat.com/*", "*://*.skinport.com/*", "*://*.skinbid.com/*", "*://*.skinbaron.de/*"],
             "js": ["js/injectionhandler.js"],
             "run_at": "document_start"
         },
         {
             "matches": ["*://*.skinport.com/*"],
             "js": ["js/skinport_script.js"],
-            "css": ["css/skinport_styles.css"],
+            "css": ["css/skinport_styles.css", "css/general_styles.css"],
             "run_at": "document_end"
         },
         {
             "matches": ["*://*.skinbid.com/*"],
             "js": ["js/skinbid_script.js"],
             "css": ["css/skinbid_styles.css"],
+            "run_at": "document_end"
+        },
+        {
+            "matches": ["*://*.skinbaron.de/*"],
+            "js": ["js/skinbaron_script.js"],
+            "css": ["css/general_styles.css", "css/skinbaron_styles.css"],
             "run_at": "document_end"
         }
     ],
@@ -44,7 +50,7 @@
     "permissions": ["storage"],
     "web_accessible_resources": [
         {
-            "matches": ["https://csfloat.com/*", "*://*.skinport.com/*", "*://*.skinbid.com/*"],
+            "matches": ["https://csfloat.com/*", "*://*.skinport.com/*", "*://*.skinbid.com/*", "*://*.skinbaron.de/*"],
             "resources": ["js/inject.js", "public/buff_favicon.png", "public/ban-solid.svg", "public/gem-shop.svg", "public/arrow-up-right-from-square-solid.svg"]
         },
         {
@@ -58,6 +64,10 @@
         {
             "matches": ["*://*.skinbid.com/*"],
             "resources": ["public/clock-solid.svg"]
+        },
+        {
+            "matches": ["*://*.skinbaron.de/*"],
+            "resources": ["public/triangle-exclamation-solid.svg"]
         }
     ]
 }

@@ -1,5 +1,6 @@
 import { Extension } from './@typings/ExtensionTypes';
 import { CSFloat } from './@typings/FloatTypes';
+import { Skinbaron } from './@typings/SkinbaronTypes';
 import { Skinbid } from './@typings/SkinbidTypes';
 import { Skinport } from './@typings/SkinportTypes';
 import { handleSpecialStickerNames } from './util/helperfunctions';
@@ -35,6 +36,8 @@ let skinportUserCurrency = '';
 let skinbidUserCurrency = '';
 // skinbid: cached items from api
 let skinbidItems: Skinbid.Listing[] = [];
+// skinbaron: cached items from api
+let skinbaronItems: Skinbaron.SingleItem[] = [];
 
 export async function cacheCSFHistoryGraph(data: CSFloat.HistoryGraphData[]) {
     if (csfloatHistoryGraph.length > 0) {
@@ -74,6 +77,15 @@ export async function cacheSkbItems(data: Skinbid.Listing[]) {
         skinbidItems = skinbidItems.concat(data);
     } else {
         skinbidItems = data;
+    }
+}
+
+export async function cacheSkinbaronItems(data: Skinbaron.SingleItem[]) {
+    if (skinbaronItems.length > 0) {
+        console.debug('[BetterFloat] Items already cached, added more items: ', skinbidItems.length);
+        skinbaronItems = skinbaronItems.concat(data);
+    } else {
+        skinbaronItems = data;
     }
 }
 
@@ -160,6 +172,15 @@ export async function getFirstSpItem() {
 export async function getFirstSkbItem() {
     if (skinbidItems.length > 0) {
         const item = skinbidItems.shift();
+        return item;
+    } else {
+        return null;
+    }
+}
+
+export async function getFirstSkinbaronItem() {
+    if (skinbaronItems.length > 0) {
+        const item = skinbaronItems.shift();
         return item;
     } else {
         return null;
