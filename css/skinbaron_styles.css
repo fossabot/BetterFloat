@@ -26,3 +26,12 @@
     visibility: visible;
     opacity: 1;
 }
+
+.betterfloat-sale-tag {
+    vertical-align: middle;
+    font-weight: 400;
+    letter-spacing: .15px;
+    font-size: 15px;
+    border-radius: 5px; 
+    padding: 5px;
+}

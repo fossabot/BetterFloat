@@ -91,9 +91,9 @@ export namespace Skinbaron {
     }
 
     export interface Item {
-        appid: number;
-        formattedSteamMarketPrice: string;
-        id: number;
+        appid: number; // 730
+        formattedSteamMarketPrice: string; // "13.02 €"
+        id: number; // "/offers/show?offerUuid=
         offerLink: string;
         steamMarketPrice: number;
     }
@@ -135,12 +135,12 @@ export namespace Skinbaron {
         };
         singleOffer: {
             dopplerClassName?: string;
-            exteriorClassName: string;
+            exteriorClassName: string; // "factory-new"
             externalVariantFilters: {
                 variantId: number;
                 variantPropertyIds: number[];
             };
-            formattedItemPrice: string;
+            formattedItemPrice: string; // "10.39 €"
             historyItemId: number;
             imageUrl: string;
             inspectLink: string;
@@ -148,10 +148,10 @@ export namespace Skinbaron {
             isSoldAndPaid: boolean;
             isWearPrecise: boolean;
             itemPrice: number;
-            localizedExteriorName: string;
-            localizedName: string;
-            localizedRarityName: string;
-            localizedVariantTypeName: string;
+            localizedExteriorName: string; // "Factory New"
+            localizedName: string; // "MAG-7 | Justice"
+            localizedRarityName: string; // "Classified"
+            localizedVariantTypeName: string; // "Shotgun"
             mosaic: {
                 createdAt: string;
                 fileName: string;
@@ -161,8 +161,8 @@ export namespace Skinbaron {
                 storageZone: string;
                 updatedAt: string;
             }
-            mosaicId: string;
-            rarityClassName: string;
+            mosaicId: string; // same as mosaic.id
+            rarityClassName: string; // "legendary"
             screenshotId: string;
             screenshotImages: {
                 createdAt: string;
@@ -175,13 +175,14 @@ export namespace Skinbaron {
             }[];
             sellerUuid: string;
             stackable: boolean;
-            statTrakString: string | null;
+            statTrakString?: "StatTrak™";
+            souvenirString?: "Souvenir";
             stickers: {
                 imageUrl: string;
                 localizedName: string;
             }[];
             tradeLockHoursLeft: number;
-            wearPercent: number;
+            wearPercent: number; // 6.0331788
         };
     }
 }

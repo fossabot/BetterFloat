@@ -37,7 +37,7 @@ let skinbidUserCurrency = '';
 // skinbid: cached items from api
 let skinbidItems: Skinbid.Listing[] = [];
 // skinbaron: cached items from api
-let skinbaronItems: Skinbaron.SingleItem[] = [];
+let skinbaronItems: Skinbaron.Item[] = [];
 
 export async function cacheCSFHistoryGraph(data: CSFloat.HistoryGraphData[]) {
     if (csfloatHistoryGraph.length > 0) {
@@ -82,11 +82,9 @@ export async function cacheSkbItems(data: Skinbid.Listing[]) {
 
 export async function cacheSkinbaronItems(data: Skinbaron.SingleItem[]) {
     if (skinbaronItems.length > 0) {
-        console.debug('[BetterFloat] Items already cached, added more items: ', skinbidItems.length);
-        skinbaronItems = skinbaronItems.concat(data);
-    } else {
-        skinbaronItems = data;
+        console.debug('[BetterFloat] Items already cached, overwriting old ones.');
     }
+    skinbaronItems = data;
 }
 
 export async function cacheCSFPopupItem(data: CSFloat.ListingData) {

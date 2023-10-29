@@ -69,10 +69,13 @@ async function firstLaunch() {
 const itemSelectors = {
     promo: {
         name: '.lName',
+        priceDiv: '.item-details-wrapper',
+        saleWrapper: '.price-wrapper',
     },
     card: {
         name: '.product-name',
-        price: '.product-price',
+        priceDiv: '.product-price',
+        saleWrapper: '.product-price',
     },
 } as const;
 
@@ -115,24 +118,31 @@ async function adjustItem(container: Element, selector: ItemSelectors) {
 
     const cachedItem = await getFirstSkinbaronItem();
     if (cachedItem) {
+        const item = Object.keys(cachedItem).includes('variant') ? cachedItem as Skinbaron.MassItem : cachedItem as Skinbaron.SingleItem;
         console.log('Cached item: ', cachedItem);
-        if (item_name != cachedItem.extendedProductInformation.localizedName) {
-            console.log('Item name does not match. ', item_name, cachedItem.extendedProductInformation.localizedName);
+        // includes instead of equality as localizedName does not contain StatTrak
+        if (!item_name.includes(item.extendedProductInformation.localizedName) && !item.extendedProductInformation.localizedName.includes(item_name)) {
+            console.log('Item name does not match. ', item_name, item.extendedProductInformation.localizedName);
             return;
         }
-        await addBuffPrice(cachedItem, container);
+        await addBuffPrice(item, container, selector);
     }
 }
 
-async function addBuffPrice(item: Skinbaron.SingleItem, container: Element) {
+async function addBuffPrice(item: Skinbaron.Item, container: Element, selector: ItemSelectors) {
     await loadMapping();
     let { buff_name, priceListing, priceOrder } = await getBuffPrice(item);
     let buff_id = await getBuffMapping(buff_name);
 
-    let priceDiv = container.querySelector('.product-price');
-    const currencySymbol = (<HTMLElement>priceDiv).childNodes[2].textContent?.trim().charAt(0);
+    let priceDiv = <HTMLElement>container.querySelector(selector.priceDiv);
+    let currencySymbol: string | undefined;
+    if (selector == itemSelectors.card) {
+        currencySymbol = priceDiv.childNodes[2].textContent?.trim().charAt(0);
+    } else {
+        currencySymbol = priceDiv.children[1].children[1].textContent?.trim().split(' ')[1].charAt(0);
+    }
     if (priceDiv && !container.querySelector('.betterfloat-buffprice')) {
-        generateBuffContainer(priceDiv as HTMLElement, priceListing, priceOrder, currencySymbol ?? '$');
+        generateBuffContainer(priceDiv, priceListing, priceOrder, currencySymbol ?? '$', selector == itemSelectors.promo);
     }
 
     const buffHref = buff_id > 0 ? `https://buff.163.com/goods/${buff_id}` : `https://buff.163.com/market/csgo#tab=selling&page_num=1&search=${encodeURIComponent(buff_name)}`;
@@ -147,40 +157,54 @@ async function addBuffPrice(item: Skinbaron.SingleItem, container: Element) {
         (<HTMLElement>buffContainer).style.justifyContent = 'center';
     }
 
-    const difference = item.singleOffer.itemPrice - (extensionSettings.skbPriceReference == 1 ? priceListing : priceOrder);
-    // if (extensionSettings.skbBuffDifference) {
-    //     let discountContainer = <HTMLElement>container.querySelector(selector.discount);
-    //     if (!discountContainer) {
-    //         discountContainer = document.createElement('div');
-    //         discountContainer.className = selector.discount.substring(1);
-    //         container.querySelector(selector.discountDiv)?.appendChild(discountContainer);
-    //     }
-    //     if (item.price !== 0 && !discountContainer.querySelector('.betterfloat-sale-tag')) {
-    //         if (selector == itemSelectors.page) {
-    //             let discountSpan = document.createElement('span');
-    //             discountSpan.style.marginLeft = '5px';
-    //             discountContainer.appendChild(discountSpan);
-    //             discountContainer = discountSpan;
-    //         }
-    //         discountContainer.className += ' betterfloat-sale-tag';
-    //         discountContainer.style.color =
-    //             difference == 0 ? extensionSettings.colors.skinbid.neutral : difference < 0 ? extensionSettings.colors.skinbid.profit : extensionSettings.colors.skinbid.loss;
-    //         discountContainer.style.fontWeight = '400';
-    //         discountContainer.style.fontSize = '14px';
-    //         discountContainer.textContent = difference == 0 ? `-${currencySymbol}0` : (difference > 0 ? '+' : '-') + currencySymbol + Math.abs(difference).toFixed(2);
-    //     }
-    // } else {
-    //     if (container.querySelector('.discount')) {
-    //         (<HTMLElement>container.querySelector('.discount')).className += 'betterfloat-sale-tag';
-    //     }
-    // }
+    const difference = (isMassItem(item) ? (<Skinbaron.MassItem>item).lowestPrice : (<Skinbaron.SingleItem>item).singleOffer.itemPrice) - (extensionSettings.skbPriceReference == 1 ? priceListing : priceOrder);
+    if (extensionSettings.skbBuffDifference) {
+        const priceWrapper = container.querySelector(selector.saleWrapper);
+        (<HTMLElement>priceWrapper).style.display = 'flex';
+        let discountContainer = document.createElement('span');
+        discountContainer.className += ' betterfloat-sale-tag';
+        if (selector == itemSelectors.promo) {
+            (<HTMLElement>priceWrapper).style.justifyContent = 'flex-end';
+            discountContainer.style.marginRight = '5px';
+            discountContainer.style.padding = '1px 3px';
+            discountContainer.style.fontSize = '13px';
+        } else {
+            (<HTMLElement>priceWrapper).style.justifyContent = 'center';
+            (<HTMLElement>priceWrapper).style.paddingBottom = '0px';
+            const buffContainer = container.querySelector('.betterfloat-buff-container');
+            if (buffContainer) {
+                (<HTMLElement>buffContainer).style.marginBottom = '20px';
+            }
+            discountContainer.style.marginLeft = '10px';
+            discountContainer.style.marginRight = '-10px';
+        }
+        // TODO use skinbaron colors
+        discountContainer.style.backgroundColor = difference == 0 ? extensionSettings.colors.skinbid.neutral : difference < 0 ? extensionSettings.colors.skinbid.profit : extensionSettings.colors.skinbid.loss;
+        discountContainer.textContent = difference == 0 ? `-${currencySymbol}0` : (difference > 0 ? '+' : '-') + currencySymbol + Math.abs(difference).toFixed(2);
+        if (isMassItem(item)) {
+            const discountWrapper = document.createElement('div');
+            discountWrapper.style.display = 'flex';
+            discountWrapper.style.alignItems = 'flex-end';
+            discountWrapper.appendChild(discountContainer);
+            discountContainer = discountWrapper;
+        }
+        if (selector == itemSelectors.promo) {
+            priceWrapper?.insertBefore(discountContainer, priceWrapper.firstChild);
+        } else {
+            priceWrapper?.appendChild(discountContainer);
+        }
+    }
 
     return {
         price_difference: difference,
     };
 }
 
-async function generateBuffContainer(container: HTMLElement, priceListing: number, priceOrder: number, currencySymbol: string, isItemPage = false) {
+function isMassItem(item: Skinbaron.Item) {
+    return Object.keys(item).includes('variant');
+}
+
+async function generateBuffContainer(container: HTMLElement, priceListing: number, priceOrder: number, currencySymbol: string, append = false, isItemPage = false) {
     container.className += ' betterfloat-buffprice';
     const buffContainer = document.createElement('div');
     buffContainer.className = 'betterfloat-buff-container';
@@ -213,12 +237,17 @@ async function generateBuffContainer(container: HTMLElement, priceListing: numbe
     buffPriceAsk.textContent = `Ask ${currencySymbol}${priceListing.toFixed(2)}`;
     buffPrice.appendChild(buffPriceAsk);
     buffContainer.appendChild(buffPrice);
-    container.appendChild(buffContainer);
+    if (append) {
+        container.appendChild(buffContainer);
+    } else {
+        container.after(buffContainer);
+    }
 }
 
-async function getBuffPrice(item: Skinbaron.SingleItem): Promise<{ buff_name: string; priceListing: number; priceOrder: number }> {
+async function getBuffPrice(item: Skinbaron.Item): Promise<{ buff_name: string; priceListing: number; priceOrder: number }> {
     let priceMapping = await getPriceMapping();
     let buff_name = handleSpecialStickerNames(createBuffName(item));
+    console.log('[BetterFloat] Buff name: ', buff_name);
     let helperPrice: number | null = null;
 
     if (!priceMapping[buff_name] || !priceMapping[buff_name]['buff163'] || !priceMapping[buff_name]['buff163']['starting_at'] || !priceMapping[buff_name]['buff163']['highest_order']) {
@@ -233,9 +262,9 @@ async function getBuffPrice(item: Skinbaron.SingleItem): Promise<{ buff_name: st
         priceListing = helperPrice;
         priceOrder = helperPrice;
     } else if (priceMapping[buff_name]) {
-        if (item.singleOffer.dopplerClassName) {
+        if ((<Skinbaron.SingleItem>item).singleOffer?.dopplerClassName) {
             // does not work yet! example: "doppler-phase4"
-            let style = item.singleOffer.dopplerClassName.split('-')[1];
+            let style = (<Skinbaron.SingleItem>item).singleOffer!.dopplerClassName!.split('-')[1];
             priceListing = priceMapping[buff_name]['buff163']['starting_at']['doppler'][style];
             priceOrder = priceMapping[buff_name]['buff163']['highest_order']['doppler'][style];
         } else {
@@ -260,18 +289,20 @@ async function getBuffPrice(item: Skinbaron.SingleItem): Promise<{ buff_name: st
     return { buff_name, priceListing, priceOrder };
 }
 
-function createBuffName(item: Skinbaron.SingleItem | Skinbaron.MassItem): string {
+function createBuffName(item: Skinbaron.Item): string {
     // check if item is a MassItem
     if (Object.keys(item).includes('variant')) {
-        return item.extendedProductInformation.localizedName;
+        return (<Skinbaron.MassItem>item).extendedProductInformation.localizedName;
     }
-    item = item as Skinbaron.SingleItem;
-    let buff_name = item.singleOffer.localizedName + ` (${item.singleOffer.localizedExteriorName})`;
-    if (item.singleOffer.localizedVariantTypeName == 'Knife' && !buff_name.startsWith('★')) {
+    const singleItem = item as Skinbaron.SingleItem;
+    let buff_name = singleItem.singleOffer.localizedName + (singleItem.singleOffer.localizedExteriorName == 'Not Pained' ? '' : ` (${singleItem.singleOffer.localizedExteriorName})`);
+    if (singleItem.singleOffer.statTrakString) {
+        buff_name = singleItem.singleOffer.statTrakString + ' ' + buff_name;
+    } else if (singleItem.singleOffer.souvenirString) {
+        buff_name = singleItem.singleOffer.souvenirString + ' ' + buff_name;
+    }
+    if (singleItem.singleOffer.localizedVariantTypeName == 'Knife' && !buff_name.startsWith('★')) {
         buff_name = '★ ' + buff_name;
-    } 
-    if (item.singleOffer.localizedExteriorName == 'Not Pained') {
-        buff_name = buff_name.replace(' (Not Pained)', '');
     }
     return buff_name;
 }
