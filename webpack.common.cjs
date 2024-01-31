@@ -16,6 +16,7 @@ module.exports = {
     mappinghandler: './src/mappinghandler.ts',
     skinport_script: './src/skinport/content_script.ts',
     skinbid_script: './src/skinbid/content_script.ts',
+    waxpeer_script: './src/waxpeer/content_script.ts',
     helperfunctions: './src/util/helperfunctions.ts',
     extensionsettings: './src/util/extensionsettings.ts',
   },

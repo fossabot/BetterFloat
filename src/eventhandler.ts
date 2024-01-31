@@ -18,6 +18,7 @@ import {
     cacheCSFExchangeRates,
 } from './mappinghandler';
 import { handleListed, handleSold } from './skinport/websockethandler';
+import { processWaxpeerEvent } from './waxpeer/content_script';
 
 type StallData = {
     data: CSFloat.ListingData[];
@@ -39,6 +40,8 @@ export function activateHandler() {
             processSkinportEvent(eventData);
         } else if (location.href.includes('skinbid.com')) {
             processSkinbidEvent(eventData);
+        } else if (location.href.includes('waxpeer.com')) {
+            processWaxpeerEvent(eventData);
         }
     });
 
